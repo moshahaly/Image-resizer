@@ -57,6 +57,19 @@
         .header {
             text-align: center;
             margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .about-button {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: none;
+            border: none;
+            color: var(--primary);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.5rem 1rem;
         }
 
         .upload-controls {
@@ -166,6 +179,40 @@
             from { transform: translateX(100%); }
             to { transform: translateX(0); }
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            margin: 15% auto;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            position: relative;
+        }
+
+        .close-button {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text);
+        }
     </style>
 </head>
 <body>
@@ -173,6 +220,7 @@
         <div class="header">
             <h1>Ultimate Image Resizer Pro</h1>
             <p>Advanced Image Processing PWA</p>
+            <button class="about-button" id="aboutButton">About</button>
         </div>
 
         <div class="upload-controls">
@@ -203,6 +251,17 @@
         <div class="loading" id="loading" style="display: none;">
             <div class="loading-spinner"></div>
             <p>Processing...</p>
+        </div>
+    </div>
+
+    <!-- About Modal -->
+    <div class="modal" id="aboutModal">
+        <div class="modal-content">
+            <button class="close-button" id="closeModal">&times;</button>
+            <h2>About</h2>
+            <p>Ultimate Image Resizer Pro</p>
+            <p>Created by Mohamed Elshahaly</p>
+            <p>© 2025</p>
         </div>
     </div>
 
@@ -350,6 +409,7 @@
                 this.initializeUpload();
                 this.initializeControls();
                 this.initializeQualitySlider();
+                this.initializeAboutModal();
             }
 
             initializeUpload() {
@@ -467,6 +527,27 @@
                 const qualityValue = document.getElementById('qualityValue');
                 qualityInput.addEventListener('input', () => {
                     qualityValue.textContent = `${Math.round(qualityInput.value * 100)}%`;
+                });
+            }
+
+            initializeAboutModal() {
+                const aboutButton = document.getElementById('aboutButton');
+                const aboutModal = document.getElementById('aboutModal');
+                const closeModal = document.getElementById('closeModal');
+
+                aboutButton.addEventListener('click', () => {
+                    aboutModal.style.display = 'block';
+                });
+
+                closeModal.addEventListener('click', () => {
+                    aboutModal.style.display = 'none';
+                });
+
+                // Close modal when clicking outside
+                window.addEventListener('click', (e) => {
+                    if (e.target === aboutModal) {
+                        aboutModal.style.display = 'none';
+                    }
                 });
             }
 
