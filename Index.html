@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Resizer Pro+</title>
+    <title>Ultimate Image Resizer Pro</title>
     <meta name="theme-color" content="#6366f1">
     <link rel="manifest" href="manifest.json">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
@@ -16,6 +16,7 @@
             --card-bg: #ffffff;
             --text: #1e293b;
             --error: #ef4444;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
         }
 
         @media (prefers-color-scheme: dark) {
@@ -41,11 +42,10 @@
             flex-direction: column;
             align-items: center;
             padding: 2rem;
-            background: linear-gradient(135deg, var(--background) 0%, #0f172a 100%);
         }
 
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
             background: var(--card-bg);
             padding: 2rem;
@@ -59,23 +59,51 @@
             margin-bottom: 2rem;
         }
 
-        .drop-zone {
-            border: 2px dashed #94a3b8;
-            border-radius: 1rem;
-            padding: 3rem 2rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 2rem;
+        .upload-controls {
             position: relative;
-            background: rgba(99, 102, 241, 0.05);
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        .modern-button {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 1rem 2rem;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: transform 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modern-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-button input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-count {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text);
         }
 
         .controls {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
             gap: 1.5rem;
-            margin-bottom: 2rem;
+            margin: 2rem 0;
         }
 
         .quality-controls {
@@ -86,7 +114,7 @@
 
         .preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
         }
@@ -96,9 +124,16 @@
             border-radius: 0.75rem;
             padding: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
         }
 
-        /* Enhanced Loading Animation */
+        .preview-image {
+            width: 100%;
+            height: 200px;
+            object-fit: contain;
+            border-radius: 0.5rem;
+        }
+
         .loading-spinner {
             width: 40px;
             height: 40px;
@@ -113,20 +148,36 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Add remaining styles from previous version and enhance as needed */
+        .error-message {
+            position: fixed;
+            bottom: 1rem;
+            right: 1rem;
+            background: var(--error);
+            color: white;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); }
+            to { transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Image Resizer Pro+</h1>
+            <h1>Ultimate Image Resizer Pro</h1>
             <p>Advanced Image Processing PWA</p>
         </div>
 
-        <div class="drop-zone" id="dropZone">
-            <input type="file" id="fileInput" accept="image/*" multiple hidden>
-            <p>Drag & drop images or click to upload</p>
-            <small>Supported formats: JPEG, PNG, WEBP, GIF, BMP</small>
+        <div class="upload-controls">
+            <button id="uploadButton" class="modern-button">
+                📁 Upload Images
+                <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            </button>
+            <div class="file-count" id="fileCount">0 files selected</div>
         </div>
 
         <div class="controls">
@@ -139,20 +190,19 @@
                 <span>Quality: <span id="qualityValue">90%</span></span>
             </div>
             <div>
-                <button id="resizeButton">Resize Selected</button>
-                <button id="batchButton">Process Batch</button>
+                <button class="modern-button" id="resizeButton">Resize Selected</button>
+                <button class="modern-button" id="batchButton">Process Batch</button>
             </div>
         </div>
 
         <div class="preview-grid" id="previewGrid"></div>
-        <div class="loading" id="loading">
+        <div class="loading" id="loading" style="display: none;">
             <div class="loading-spinner"></div>
             <p>Processing...</p>
         </div>
     </div>
 
     <script>
-        // Enhanced Image Processor Class
         class ImageProcessor {
             constructor() {
                 this.files = [];
@@ -171,7 +221,7 @@
                 }
 
                 this.files = [...this.files, ...validFiles];
-                this.updatePreviewGrid();
+                return validFiles;
             }
 
             async processAll() {
@@ -204,7 +254,7 @@
                         this.applyOrientation(canvas, orientation);
                         
                         const blob = await new Promise(resolve => 
-                            canvas.toBlob(resolve, file.type, qualityInput.value)
+                            canvas.toBlob(resolve, file.type, parseFloat(qualityInput.value))
                         );
 
                         resolve({ blob, url: URL.createObjectURL(blob) });
@@ -224,6 +274,8 @@
 
             applyOrientation(canvas, orientation) {
                 const ctx = canvas.getContext('2d');
+                ctx.save();
+                
                 switch(orientation) {
                     case 2: ctx.transform(-1, 0, 0, 1, canvas.width, 0); break;
                     case 3: ctx.transform(-1, 0, 0, -1, canvas.width, canvas.height); break;
@@ -233,19 +285,19 @@
                     case 7: ctx.transform(0, -1, -1, 0, canvas.height, canvas.width); break;
                     case 8: ctx.transform(0, -1, 1, 0, 0, canvas.width); break;
                 }
+                
+                ctx.restore();
             }
 
-            // Add remaining helper methods
-        }
-
-        // UI Controller Class
-        class UIController {
-            constructor() {
-                this.initEventListeners();
-            }
-
-            initEventListeners() {
-                // Add all event listeners
+            downloadFile(blob, filename) {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
             }
 
             showError(message) {
@@ -255,42 +307,115 @@
                 document.body.appendChild(errorEl);
                 setTimeout(() => errorEl.remove(), 5000);
             }
-
-            updatePreviewGrid(files) {
-                // Implement grid preview with thumbnails
-            }
-
-            // Add other UI methods
         }
 
-        // Service Worker with Advanced Caching
-        const registerServiceWorker = async () => {
-            if ('serviceWorker' in navigator) {
-                try {
-                    const registration = await navigator.serviceWorker.register('sw.js');
-                    
-                    registration.addEventListener('updatefound', () => {
-                        const newWorker = registration.installing;
-                        newWorker.addEventListener('statechange', () => {
-                            if (newWorker.state === 'installed') {
-                                // Show update available notification
-                            }
-                        });
-                    });
-                } catch (error) {
-                    console.error('SW registration failed:', error);
-                }
+        class UIController {
+            constructor(imageProcessor) {
+                this.imageProcessor = imageProcessor;
+                this.initialize();
             }
-        };
+
+            initialize() {
+                this.initializeUpload();
+                this.initializeControls();
+                this.initializeQualitySlider();
+            }
+
+            initializeUpload() {
+                const fileInput = document.getElementById('fileInput');
+                const fileCount = document.getElementById('fileCount');
+                const previewGrid = document.getElementById('previewGrid');
+
+                fileInput.addEventListener('change', async (e) => {
+                    try {
+                        const files = Array.from(e.target.files);
+                        const validFiles = await this.imageProcessor.addFiles(files);
+                        fileCount.textContent = `${validFiles.length} files selected`;
+                        this.updatePreviewGrid(validFiles);
+                    } catch (error) {
+                        this.showError(error.message);
+                    }
+                });
+
+                const dropZone = document.getElementById('uploadButton');
+                dropZone.addEventListener('dragover', (e) => e.preventDefault());
+                dropZone.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    try {
+                        const files = Array.from(e.dataTransfer.files);
+                        const validFiles = await this.imageProcessor.addFiles(files);
+                        fileCount.textContent = `${validFiles.length} files selected`;
+                        this.updatePreviewGrid(validFiles);
+                    } catch (error) {
+                        this.showError(error.message);
+                    }
+                });
+            }
+
+            updatePreviewGrid(files) {
+                const previewGrid = document.getElementById('previewGrid');
+                previewGrid.innerHTML = '';
+                
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const card = document.createElement('div');
+                        card.className = 'preview-card';
+                        card.innerHTML = `
+                            <img src="${e.target.result}" class="preview-image" alt="Preview">
+                            <div>${file.name}</div>
+                        `;
+                        previewGrid.appendChild(card);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            initializeControls() {
+                const resizeButton = document.getElementById('resizeButton');
+                const batchButton = document.getElementById('batchButton');
+                const loading = document.getElementById('loading');
+
+                resizeButton.addEventListener('click', async () => {
+                    // Implement single image processing
+                });
+
+                batchButton.addEventListener('click', async () => {
+                    loading.style.display = 'flex';
+                    try {
+                        await this.imageProcessor.processAll();
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        loading.style.display = 'none';
+                    }
+                });
+            }
+
+            initializeQualitySlider() {
+                const qualityInput = document.getElementById('qualityInput');
+                const qualityValue = document.getElementById('qualityValue');
+                qualityInput.addEventListener('input', () => {
+                    qualityValue.textContent = `${Math.round(qualityInput.value * 100)}%`;
+                });
+            }
+
+            showError(message) {
+                this.imageProcessor.showError(message);
+            }
+        }
 
         // Initialize the app
-        const initApp = () => {
+        document.addEventListener('DOMContentLoaded', () => {
             const imageProcessor = new ImageProcessor();
             new UIController(imageProcessor);
-            registerServiceWorker();
-        };
-
-        initApp();
+            
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js')
+                    .then(() => console.log('Service Worker registered'))
+                    .catch(err => console.error('SW registration failed:', err));
+            }
+        });
     </script>
 </body>
 </html>
