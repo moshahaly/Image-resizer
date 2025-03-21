@@ -57,19 +57,24 @@
         .header {
             text-align: center;
             margin-bottom: 2rem;
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .about-button {
-            position: absolute;
-            right: 0;
-            top: 0;
             background: none;
             border: none;
             color: var(--primary);
             cursor: pointer;
-            font-size: 1rem;
+            font-size: 0.9rem;
             padding: 0.5rem 1rem;
+            transition: color 0.2s ease;
+        }
+
+        .about-button:hover {
+            color: var(--secondary);
         }
 
         .upload-controls {
@@ -257,7 +262,7 @@
     <!-- About Modal -->
     <div class="modal" id="aboutModal">
         <div class="modal-content">
-            <button class="close-button" id="closeModal">&times;</button>
+            <button class="close-button" id="closeModal">×</button>
             <h2>About</h2>
             <p>Ultimate Image Resizer Pro</p>
             <p>Created by Mohamed Elshahaly</p>
@@ -543,7 +548,6 @@
                     aboutModal.style.display = 'none';
                 });
 
-                // Close modal when clicking outside
                 window.addEventListener('click', (e) => {
                     if (e.target === aboutModal) {
                         aboutModal.style.display = 'none';
