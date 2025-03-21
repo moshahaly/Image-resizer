@@ -63,9 +63,14 @@
             position: relative;
             margin: 2rem 0;
             text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .modern-button {
+            display: inline-block;
             background: var(--primary-gradient);
             color: white;
             padding: 1rem 2rem;
@@ -76,21 +81,12 @@
             transition: transform 0.2s ease;
             position: relative;
             overflow: hidden;
+            text-decoration: none;
         }
 
         .modern-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-
-        .modern-button input[type="file"] {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
         }
 
         .file-count {
@@ -134,6 +130,13 @@
             border-radius: 0.5rem;
         }
 
+        .file-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+
         .loading-spinner {
             width: 40px;
             height: 40px;
@@ -173,10 +176,10 @@
         </div>
 
         <div class="upload-controls">
-            <button id="uploadButton" class="modern-button">
+            <label for="fileInput" class="modern-button">
                 📁 Upload Images
-                <input type="file" id="fileInput" accept="image/*" multiple hidden>
-            </button>
+            </label>
+            <input type="file" id="fileInput" accept="image/*" multiple hidden>
             <div class="file-count" id="fileCount">0 files selected</div>
         </div>
 
@@ -192,6 +195,7 @@
             <div>
                 <button class="modern-button" id="resizeButton">Resize Selected</button>
                 <button class="modern-button" id="batchButton">Process Batch</button>
+                <button class="modern-button" id="downloadButton" style="display: none;">Download Results</button>
             </div>
         </div>
 
@@ -206,6 +210,8 @@
         class ImageProcessor {
             constructor() {
                 this.files = [];
+                this.processedFiles = [];
+                this.processedZip = null;
                 this.queue = [];
                 this.processing = false;
             }
@@ -229,15 +235,18 @@
                 this.processing = true;
                 
                 try {
+                    this.processedFiles = [];
                     const zip = new JSZip();
                     
                     for (const [index, file] of this.files.entries()) {
                         const processed = await this.processFile(file);
+                        this.processedFiles.push(processed);
                         zip.file(`resized-${index}-${file.name}`, processed.blob);
                     }
 
                     const content = await zip.generateAsync({type: 'blob'});
-                    this.downloadFile(content, 'resized-images.zip');
+                    this.processedZip = content;
+                    return content;
                 } catch (error) {
                     this.showError(error.message);
                 } finally {
@@ -261,6 +270,28 @@
                     } catch (error) {
                         reject(error);
                     }
+                });
+            }
+
+            createCanvas(img) {
+                const canvas = document.createElement('canvas');
+                const width = parseInt(widthInput.value) || img.width;
+                const height = parseInt(heightInput.value) || img.height;
+                
+                canvas.width = width;
+                canvas.height = height;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                return canvas;
+            }
+
+            loadImage(file) {
+                return new Promise((resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = reject;
+                    img.src = URL.createObjectURL(file);
                 });
             }
 
@@ -328,24 +359,32 @@
 
                 fileInput.addEventListener('change', async (e) => {
                     try {
-                        const files = Array.from(e.target.files);
-                        const validFiles = await this.imageProcessor.addFiles(files);
-                        fileCount.textContent = `${validFiles.length} files selected`;
-                        this.updatePreviewGrid(validFiles);
+                        if (!e.target.files?.length) return;
+                        const files = await this.imageProcessor.addFiles(e.target.files);
+                        fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
+                        this.updatePreviewGrid(files);
                     } catch (error) {
                         this.showError(error.message);
                     }
                 });
 
-                const dropZone = document.getElementById('uploadButton');
-                dropZone.addEventListener('dragover', (e) => e.preventDefault());
-                dropZone.addEventListener('drop', async (e) => {
+                document.body.addEventListener('dragover', (e) => {
                     e.preventDefault();
+                    document.body.style.opacity = '0.7';
+                });
+
+                document.body.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    document.body.style.opacity = '1';
+                });
+
+                document.body.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    document.body.style.opacity = '1';
                     try {
-                        const files = Array.from(e.dataTransfer.files);
-                        const validFiles = await this.imageProcessor.addFiles(files);
-                        fileCount.textContent = `${validFiles.length} files selected`;
-                        this.updatePreviewGrid(validFiles);
+                        const files = await this.imageProcessor.addFiles(e.dataTransfer.files);
+                        fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
+                        this.updatePreviewGrid(files);
                     } catch (error) {
                         this.showError(error.message);
                     }
@@ -354,7 +393,6 @@
 
             updatePreviewGrid(files) {
                 const previewGrid = document.getElementById('previewGrid');
-                previewGrid.innerHTML = '';
                 
                 files.forEach(file => {
                     const reader = new FileReader();
@@ -363,7 +401,10 @@
                         card.className = 'preview-card';
                         card.innerHTML = `
                             <img src="${e.target.result}" class="preview-image" alt="Preview">
-                            <div>${file.name}</div>
+                            <div class="file-info">
+                                <span>${file.name}</span>
+                                <span>${(file.size / 1024).toFixed(1)} KB</span>
+                            </div>
                         `;
                         previewGrid.appendChild(card);
                     };
@@ -374,20 +415,49 @@
             initializeControls() {
                 const resizeButton = document.getElementById('resizeButton');
                 const batchButton = document.getElementById('batchButton');
+                const downloadButton = document.getElementById('downloadButton');
                 const loading = document.getElementById('loading');
 
                 resizeButton.addEventListener('click', async () => {
-                    // Implement single image processing
-                });
-
-                batchButton.addEventListener('click', async () => {
+                    if (!this.imageProcessor.files.length) {
+                        this.showError('Please upload images first');
+                        return;
+                    }
+                    
                     loading.style.display = 'flex';
                     try {
-                        await this.imageProcessor.processAll();
+                        const processed = await this.imageProcessor.processFile(this.imageProcessor.files[0]);
+                        this.imageProcessor.downloadFile(processed.blob, `resized-${this.imageProcessor.files[0].name}`);
+                        downloadButton.style.display = 'none';
                     } catch (error) {
                         this.showError(error.message);
                     } finally {
                         loading.style.display = 'none';
+                    }
+                });
+
+                batchButton.addEventListener('click', async () => {
+                    if (!this.imageProcessor.files.length) {
+                        this.showError('Please upload images first');
+                        return;
+                    }
+                    
+                    loading.style.display = 'flex';
+                    try {
+                        await this.imageProcessor.processAll();
+                        downloadButton.style.display = 'inline-block';
+                    } catch (error) {
+                        this.showError(error.message);
+                    } finally {
+                        loading.style.display = 'none';
+                    }
+                });
+
+                downloadButton.addEventListener('click', () => {
+                    if (this.imageProcessor.processedZip) {
+                        this.imageProcessor.downloadFile(this.imageProcessor.processedZip, 'resized-images.zip');
+                    } else {
+                        this.showError('No processed files available. Please process images first.');
                     }
                 });
             }
@@ -405,7 +475,6 @@
             }
         }
 
-        // Initialize the app
         document.addEventListener('DOMContentLoaded', () => {
             const imageProcessor = new ImageProcessor();
             new UIController(imageProcessor);
