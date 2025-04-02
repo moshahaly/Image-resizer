@@ -96,7 +96,7 @@
             border: none;
             cursor: pointer;
             font-size: 1.1rem;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, opacity 0.2s ease;
             position: relative;
             overflow: hidden;
             text-decoration: none;
@@ -105,6 +105,12 @@
         .modern-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .modern-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .file-count {
@@ -127,16 +133,40 @@
         }
 
         .size-inputs input[type="number"] {
-            width: 120px; /* Increased width */
-            padding: 0.75rem; /* Increased padding */
-            font-size: 1.1rem; /* Larger text */
+            width: 120px;
+            padding: 0.75rem;
+            font-size: 1.1rem;
             border: 2px solid var(--primary);
             border-radius: 8px;
             background: var(--card-bg);
             color: var(--text);
+            transition: border-color 0.2s ease;
         }
 
         .size-inputs input[type="number"]:focus {
+            outline: none;
+            border-color: var(--secondary);
+            box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
+        }
+
+        .filename-input {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .filename-input input[type="text"] {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 1.1rem;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            background: var(--card-bg);
+            color: var(--text);
+            transition: border-color 0.2s ease;
+        }
+
+        .filename-input input[type="text"]:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
@@ -161,6 +191,11 @@
             padding: 1rem;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-2px);
         }
 
         .preview-image {
@@ -250,11 +285,12 @@
         </div>
 
         <div class="upload-controls">
-            <label for="fileInput" class="modern-button">
+            <label for="fileInput" class="modern-button" id="uploadButton">
                 📁 Upload Images
             </label>
             <input type="file" id="fileInput" accept="image/*" multiple hidden>
             <div class="file-count" id="fileCount">0 files selected</div>
+            <button class="modern-button" id="clearButton" style="display: none;">Clear Files</button>
         </div>
 
         <div class="controls">
@@ -266,10 +302,13 @@
                 <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.9">
                 <span>Quality: <span id="qualityValue">90%</span></span>
             </div>
-            <div>
-                <button class="modern-button" id="resizeButton">Resize Selected</button>
-                <button class="modern-button" id="batchButton">Process Batch</button>
-                <button class="modern-button" id="downloadButton" style="display: none;">Download Results</button>
+            <div class="filename-input">
+                <input type="text" id="filenameInput" placeholder="Output filename (optional)">
+                <div>
+                    <button class="modern-button" id="resizeButton">Resize Selected</button>
+                    <button class="modern-button" id="batchButton">Process Batch</button>
+                    <button class="modern-button" id="downloadButton" style="display: none;">Download Results</button>
+                </div>
             </div>
         </div>
 
@@ -314,7 +353,7 @@
                 return validFiles;
             }
 
-            async processAll() {
+            async processAll(customName) {
                 if (this.processing) return;
                 this.processing = true;
                 
@@ -325,7 +364,9 @@
                     for (const [index, file] of this.files.entries()) {
                         const processed = await this.processFile(file);
                         this.processedFiles.push(processed);
-                        zip.file(`resized-${index}-${file.name}`, processed.blob);
+                        const baseName = customName || 'resized';
+                        const extension = file.name.split('.').pop();
+                        zip.file(`${baseName}-${index}.${extension}`, processed.blob);
                     }
 
                     const content = await zip.generateAsync({type: 'blob'});
@@ -350,7 +391,7 @@
                             canvas.toBlob(resolve, file.type, parseFloat(qualityInput.value))
                         );
 
-                        resolve({ blob, url: URL.createObjectURL(blob) });
+                        resolve({ blob, url: URL.createObjectURL(blob), extension: file.name.split('.').pop() });
                     } catch (error) {
                         reject(error);
                     }
@@ -415,6 +456,12 @@
                 window.URL.revokeObjectURL(url);
             }
 
+            clearFiles() {
+                this.files = [];
+                this.processedFiles = [];
+                this.processedZip = null;
+            }
+
             showError(message) {
                 const errorEl = document.createElement('div');
                 errorEl.className = 'error-message';
@@ -441,15 +488,21 @@
                 const fileInput = document.getElementById('fileInput');
                 const fileCount = document.getElementById('fileCount');
                 const previewGrid = document.getElementById('previewGrid');
+                const uploadButton = document.getElementById('uploadButton');
+                const clearButton = document.getElementById('clearButton');
 
                 fileInput.addEventListener('change', async (e) => {
+                    if (!e.target.files?.length) return;
+                    uploadButton.disabled = true;
                     try {
-                        if (!e.target.files?.length) return;
                         const files = await this.imageProcessor.addFiles(e.target.files);
                         fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
                         this.updatePreviewGrid(files);
+                        clearButton.style.display = 'inline-block';
                     } catch (error) {
                         this.showError(error.message);
+                    } finally {
+                        uploadButton.disabled = false;
                     }
                 });
 
@@ -466,13 +519,26 @@
                 document.body.addEventListener('drop', async (e) => {
                     e.preventDefault();
                     document.body.style.opacity = '1';
+                    uploadButton.disabled = true;
                     try {
                         const files = await this.imageProcessor.addFiles(e.dataTransfer.files);
                         fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
                         this.updatePreviewGrid(files);
+                        clearButton.style.display = 'inline-block';
                     } catch (error) {
                         this.showError(error.message);
+                    } finally {
+                        uploadButton.disabled = false;
                     }
+                });
+
+                clearButton.addEventListener('click', () => {
+                    this.imageProcessor.clearFiles();
+                    fileCount.textContent = '0 files selected';
+                    previewGrid.innerHTML = '';
+                    clearButton.style.display = 'none';
+                    document.getElementById('downloadButton').style.display = 'none';
+                    document.getElementById('filenameInput').value = '';
                 });
             }
 
@@ -502,6 +568,7 @@
                 const batchButton = document.getElementById('batchButton');
                 const downloadButton = document.getElementById('downloadButton');
                 const loading = document.getElementById('loading');
+                const filenameInput = document.getElementById('filenameInput');
 
                 resizeButton.addEventListener('click', async () => {
                     if (!this.imageProcessor.files.length) {
@@ -510,14 +577,17 @@
                     }
                     
                     loading.style.display = 'flex';
+                    resizeButton.disabled = true;
                     try {
                         const processed = await this.imageProcessor.processFile(this.imageProcessor.files[0]);
-                        this.imageProcessor.downloadFile(processed.blob, `resized-${this.imageProcessor.files[0].name}`);
+                        const customName = filenameInput.value.trim() || 'resized';
+                        this.imageProcessor.downloadFile(processed.blob, `${customName}.${processed.extension}`);
                         downloadButton.style.display = 'none';
                     } catch (error) {
                         this.showError(error.message);
                     } finally {
                         loading.style.display = 'none';
+                        resizeButton.disabled = false;
                     }
                 });
 
@@ -528,19 +598,23 @@
                     }
                     
                     loading.style.display = 'flex';
+                    batchButton.disabled = true;
                     try {
-                        await this.imageProcessor.processAll();
+                        const customName = filenameInput.value.trim();
+                        await this.imageProcessor.processAll(customName);
                         downloadButton.style.display = 'inline-block';
                     } catch (error) {
                         this.showError(error.message);
                     } finally {
                         loading.style.display = 'none';
+                        batchButton.disabled = false;
                     }
                 });
 
                 downloadButton.addEventListener('click', () => {
                     if (this.imageProcessor.processedZip) {
-                        this.imageProcessor.downloadFile(this.imageProcessor.processedZip, 'resized-images.zip');
+                        const customName = filenameInput.value.trim() || 'resized-images';
+                        this.imageProcessor.downloadFile(this.imageProcessor.processedZip, `${customName}.zip`);
                     } else {
                         this.showError('No processed files available. Please process images first.');
                     }
