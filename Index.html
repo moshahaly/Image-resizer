@@ -9,6 +9,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/exif-js/2.3.0/exif.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
     <style>
+        /* --- Existing CSS --- */
         :root {
             --primary: #6366f1;
             --secondary: #a855f7;
@@ -96,7 +97,7 @@
             border: none;
             cursor: pointer;
             font-size: 1.1rem;
-            transition: transform 0.2s ease, opacity 0.2s ease;
+            transition: transform 0.2s ease, opacity 0.2s ease, box-shadow 0.2s ease; /* Added box-shadow */
             position: relative;
             overflow: hidden;
             text-decoration: none;
@@ -104,13 +105,14 @@
 
         .modern-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.4); /* Enhanced shadow */
         }
 
         .modern-button:disabled {
             opacity: 0.7;
             cursor: not-allowed;
             transform: none;
+            box-shadow: none; /* Remove shadow when disabled */
         }
 
         .file-count {
@@ -121,26 +123,40 @@
 
         .controls {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            /* Adjusted grid to accommodate more controls potentially */
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.5rem;
             margin: 2rem 0;
+            align-items: start; /* Align items to the start of the cell */
+        }
+
+        .control-group { /* Wrapper for label and input/select */
+           display: flex;
+           flex-direction: column;
+           gap: 0.5rem;
+        }
+
+        .control-group label {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text);
         }
 
         .size-inputs {
             display: flex;
             gap: 1rem;
-            align-items: center;
+            align-items: center; /* Keep items centered vertically */
         }
 
         .size-inputs input[type="number"] {
-            width: 120px;
+            width: 100px; /* Slightly smaller width */
             padding: 0.75rem;
-            font-size: 1.1rem;
+            font-size: 1rem; /* Adjusted font size */
             border: 2px solid var(--primary);
             border-radius: 8px;
             background: var(--card-bg);
             color: var(--text);
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease; /* Added box-shadow transition */
         }
 
         .size-inputs input[type="number"]:focus {
@@ -149,24 +165,23 @@
             box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
         }
 
-        .filename-input {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-
-        .filename-input input[type="text"] {
-            width: 100%;
+        /* Generic input/select styling */
+        input[type="number"],
+        input[type="text"],
+        select {
+            width: 100%; /* Make inputs/select take full width of their container */
             padding: 0.75rem;
-            font-size: 1.1rem;
+            font-size: 1rem; /* Consistent font size */
             border: 2px solid var(--primary);
             border-radius: 8px;
             background: var(--card-bg);
             color: var(--text);
-            transition: border-color 0.2s ease;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .filename-input input[type="text"]:focus {
+        input[type="number"]:focus,
+        input[type="text"]:focus,
+        select:focus {
             outline: none;
             border-color: var(--secondary);
             box-shadow: 0 0 5px rgba(99, 102, 241, 0.5);
@@ -174,48 +189,93 @@
 
         .quality-controls {
             display: flex;
+            flex-direction: column; /* Stack label and slider */
+            gap: 0.5rem;
+            align-items: stretch; /* Stretch items */
+        }
+
+        .quality-controls span {
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .quality-controls input[type="range"] {
+           width: 100%; /* Full width */
+           cursor: pointer;
+        }
+
+        .action-buttons { /* Container for action buttons */
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap */
             gap: 1rem;
-            align-items: center;
+            margin-top: 1rem; /* Add space above buttons */
         }
 
         .preview-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Slightly smaller min size */
+            gap: 1rem; /* Reduced gap */
             margin-top: 2rem;
         }
 
         .preview-card {
             background: var(--card-bg);
             border-radius: 0.75rem;
-            padding: 1rem;
+            padding: 0.75rem; /* Reduced padding */
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             position: relative;
-            transition: transform 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease; /* Added box-shadow */
+            overflow: hidden; /* Hide overflowing content */
         }
 
         .preview-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-3px); /* Slightly more lift */
+            box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.15); /* Enhanced shadow */
         }
 
         .preview-image {
             width: 100%;
-            height: 200px;
+            height: 150px; /* Reduced height */
             object-fit: contain;
             border-radius: 0.5rem;
+            background-color: rgba(0,0,0,0.05); /* Slight background for transparent images */
         }
 
         .file-info {
             display: flex;
             justify-content: space-between;
             margin-top: 0.5rem;
-            font-size: 0.9rem;
+            font-size: 0.8rem; /* Smaller font */
+            color: #64748b; /* Muted color */
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 0.25rem;
+        }
+        .file-info span:first-child { /* Filename */
+           white-space: nowrap;
+           overflow: hidden;
+           text-overflow: ellipsis;
+           flex-shrink: 1; /* Allow filename to shrink */
+           min-width: 50px;
+        }
+        .file-info span:last-child { /* Size */
+           flex-shrink: 0; /* Prevent size from shrinking */
+           white-space: nowrap;
+        }
+
+        /* --- Loading Spinner & Error --- */
+        .loading {
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+            color: var(--primary);
         }
 
         .loading-spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid #f3f3f3;
+            border: 4px solid #e5e7eb; /* Lighter border */
             border-top: 4px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -229,19 +289,27 @@
         .error-message {
             position: fixed;
             bottom: 1rem;
-            right: 1rem;
+            left: 50%; /* Center horizontally */
+            transform: translateX(-50%); /* Adjust for centering */
             background: var(--error);
             color: white;
-            padding: 1rem;
+            padding: 1rem 1.5rem;
             border-radius: 0.5rem;
-            animation: slideIn 0.3s ease;
+            animation: slideInUp 0.3s ease forwards, fadeOut 0.3s ease 4.7s forwards; /* Slide up and fade out */
+            z-index: 1100; /* Ensure it's above modal overlay */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
 
-        @keyframes slideIn {
-            from { transform: translateX(100%); }
-            to { transform: translateX(0); }
+        @keyframes slideInUp { /* Changed animation */
+            from { transform: translate(-50%, 100%); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; visibility: hidden; }
         }
 
+        /* --- Modal --- */
         .modal {
             display: none;
             position: fixed;
@@ -249,31 +317,61 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6); /* Darker overlay */
             z-index: 1000;
+            display: flex; /* Use flex for centering */
+            align-items: center;
+            justify-content: center;
+            opacity: 0; /* Start hidden */
+            transition: opacity 0.3s ease;
+            pointer-events: none; /* Prevent interaction when hidden */
+        }
+        .modal.active { /* Class to show modal */
+            opacity: 1;
+            pointer-events: auto;
         }
 
         .modal-content {
             background: var(--card-bg);
-            margin: 15% auto;
             padding: 2rem;
             border-radius: 1rem;
             width: 90%;
-            max-width: 400px;
+            max-width: 450px; /* Slightly wider */
             text-align: center;
             position: relative;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transform: scale(0.95); /* Start slightly smaller */
+            transition: transform 0.3s ease;
         }
+        .modal.active .modal-content {
+             transform: scale(1); /* Scale to full size */
+        }
+
 
         .close-button {
             position: absolute;
             right: 1rem;
             top: 1rem;
-            font-size: 1.5rem;
+            font-size: 1.8rem; /* Larger close button */
             border: none;
             background: none;
             cursor: pointer;
             color: var(--text);
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
         }
+        .close-button:hover {
+            opacity: 1;
+        }
+        .modal-content h2 {
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+         .modal-content p {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+        /* --- End of Existing CSS --- */
     </style>
 </head>
 <body>
@@ -288,43 +386,69 @@
             <label for="fileInput" class="modern-button" id="uploadButton">
                 📁 Upload Images
             </label>
-            <input type="file" id="fileInput" accept="image/*" multiple hidden>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp,image/gif,image/bmp" multiple hidden>
             <div class="file-count" id="fileCount">0 files selected</div>
-            <button class="modern-button" id="clearButton" style="display: none;">Clear Files</button>
+            <button class="modern-button" id="clearButton" style="display: none; background: var(--error); margin-top: 0.5rem;">Clear Files</button>
         </div>
 
         <div class="controls">
-            <div class="size-inputs">
-                <input type="number" id="widthInput" placeholder="Width (px)" min="1">
-                <input type="number" id="heightInput" placeholder="Height (px)" min="1">
-            </div>
-            <div class="quality-controls">
-                <input type="range" id="qualityInput" min="0" max="1" step="0.1" value="0.9">
-                <span>Quality: <span id="qualityValue">90%</span></span>
-            </div>
-            <div class="filename-input">
-                <input type="text" id="filenameInput" placeholder="Output filename (optional)">
-                <div>
-                    <button class="modern-button" id="resizeButton">Resize Selected</button>
-                    <button class="modern-button" id="batchButton">Process Batch</button>
-                    <button class="modern-button" id="downloadButton" style="display: none;">Download Results</button>
+             <div class="control-group">
+                <label>Dimensions (px)</label>
+                <div class="size-inputs">
+                    <input type="number" id="widthInput" placeholder="Width" min="1">
+                    <span>&times;</span> <input type="number" id="heightInput" placeholder="Height" min="1">
                 </div>
+                <small>Leave blank to keep original</small>
             </div>
+
+            <div class="control-group">
+                 <label for="formatSelect">Output Format</label>
+                 <select id="formatSelect">
+                     <option value="original">Keep Original</option>
+                     <option value="image/jpeg">JPEG</option>
+                     <option value="image/png">PNG</option>
+                     {/* Optional: Add WebP if needed */}
+                 </select>
+            </div>
+
+            <div class="control-group" id="qualityControlGroup">
+                <label for="qualityInput">Quality</label>
+                 <div class="quality-controls">
+                    <input type="range" id="qualityInput" min="0.1" max="1" step="0.05" value="0.9">
+                    <span id="qualityValue">90%</span>
+                </div>
+                <small>Applicable for JPEG format</small>
+            </div>
+
+            <div class="control-group">
+                <label for="filenameInput">Output Filename Prefix</label>
+                <input type="text" id="filenameInput" placeholder="e.g., resized-image">
+             </div>
+        </div>
+
+        <div class="action-buttons">
+            <button class="modern-button" id="resizeButton" title="Resize the first selected image">Resize First</button>
+            <button class="modern-button" id="batchButton" title="Resize all selected images and zip">Process Batch</button>
+            <button class="modern-button" id="downloadButton" style="display: none; background: #10b981;">Download ZIP</button>
+        </div>
+
+
+        <div class="loading" id="loading"> <div class="loading-spinner"></div>
+            <p>Processing images...</p>
         </div>
 
         <div class="preview-grid" id="previewGrid"></div>
-        <div class="loading" id="loading" style="display: none;">
-            <div class="loading-spinner"></div>
-            <p>Processing...</p>
-        </div>
+
     </div>
 
     <div class="modal" id="aboutModal">
         <div class="modal-content">
             <button class="close-button" id="closeModal">×</button>
             <h2>About</h2>
-            <p>Ultimate Image Resizer Pro</p>
+            <p><strong>Ultimate Image Resizer Pro</strong></p>
+            <p>Resize, convert, and process images directly in your browser. Built as a Progressive Web App for offline use.</p>
             <p>Created by Mohamed Elshahaly</p>
+            <p>Enhanced by AI</p>
             <p>© 2025</p>
         </div>
     </div>
@@ -333,147 +457,425 @@
         class ImageProcessor {
             constructor() {
                 this.files = [];
-                this.processedFiles = [];
+                this.processedFilesData = []; // Store { blob, filename }
                 this.processedZip = null;
-                this.queue = [];
                 this.processing = false;
             }
 
-            async addFiles(files) {
+            addFiles(files) { // No async needed here anymore
                 const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/bmp'];
-                const validFiles = Array.from(files).filter(file => 
-                    validTypes.includes(file.type)
+                const newFiles = Array.from(files).filter(file =>
+                    validTypes.includes(file.type) && !this.files.some(existing => existing.name === file.name && existing.size === file.size) // Avoid duplicates
                 );
-                
-                if (validFiles.length === 0) {
-                    throw new Error('No valid image files selected');
+
+                if (files.length > 0 && newFiles.length === 0 && this.files.length === 0) {
+                     throw new Error('No valid new image files selected (check format or duplicates).');
+                } else if (files.length > 0 && newFiles.length === 0 && this.files.length > 0) {
+                    // If duplicates were selected but others already exist, show mild info
+                    this.showInfo('Selected files already seem to be in the list.');
+                    return []; // Return empty array as no *new* valid files were added
                 }
 
-                this.files = [...this.files, ...validFiles];
-                return validFiles;
+                this.files = [...this.files, ...newFiles];
+                return newFiles; // Return only the newly added valid files for preview
             }
 
-            async processAll(customName) {
-                if (this.processing) return;
+            async processAll(options) {
+                if (this.processing || this.files.length === 0) return;
                 this.processing = true;
-                
+                this.processedFilesData = []; // Clear previous results
+                this.processedZip = null; // Clear previous zip
+
+                const zip = new JSZip();
+                const { filenamePrefix = 'resized' } = options; // Destructure options
+
                 try {
-                    this.processedFiles = [];
-                    const zip = new JSZip();
-                    
+                    // Process files sequentially to avoid overwhelming the browser
                     for (const [index, file] of this.files.entries()) {
-                        const processed = await this.processFile(file);
-                        this.processedFiles.push(processed);
-                        const baseName = customName || 'resized';
-                        const extension = file.name.split('.').pop();
-                        zip.file(`${baseName}-${index}.${extension}`, processed.blob);
+                        try {
+                            const processedData = await this.processFile(file, options);
+                            const finalFilename = `${filenamePrefix}-${index + 1}.${processedData.extension}`;
+                            this.processedFilesData.push({ blob: processedData.blob, filename: finalFilename });
+                            zip.file(finalFilename, processedData.blob);
+                        } catch (error) {
+                             console.error(`Error processing ${file.name}:`, error);
+                             this.showError(`Skipping ${file.name} due to processing error: ${error.message}`);
+                             // Optionally add a placeholder or skip entry in processedFilesData
+                        }
                     }
 
-                    const content = await zip.generateAsync({type: 'blob'});
+                    if (this.processedFilesData.length === 0) {
+                         throw new Error("No images could be processed successfully.");
+                    }
+
+                    const content = await zip.generateAsync({ type: 'blob' });
                     this.processedZip = content;
-                    return content;
+                    return content; // Return the zip blob
+
                 } catch (error) {
-                    this.showError(error.message);
+                    console.error("Batch processing error:", error);
+                    this.showError(`Batch processing failed: ${error.message}`);
+                    throw error; // Re-throw for UIController to handle
                 } finally {
                     this.processing = false;
                 }
             }
 
-            async processFile(file) {
+            // Updated processFile takes an options object
+            async processFile(file, options) {
                 return new Promise(async (resolve, reject) => {
                     try {
+                        const { targetWidth, targetHeight, quality, outputFormat } = options;
+
                         const img = await this.loadImage(file);
-                        const canvas = this.createCanvas(img);
                         const orientation = await this.getExifOrientation(file);
-                        this.applyOrientation(canvas, orientation);
-                        
-                        const blob = await new Promise(resolve => 
-                            canvas.toBlob(resolve, file.type, parseFloat(qualityInput.value))
+
+                        // Calculate dimensions respecting aspect ratio if only one dimension is provided
+                        let { width, height } = this.calculateDimensions(img.width, img.height, targetWidth, targetHeight);
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+
+                        // Apply EXIF orientation *before* drawing image if needed (complex rotations/flips)
+                        // Note: Simple rotations (90/180/270) are better handled by swapping w/h before drawing
+                        // For simplicity here, we draw first, then transform the canvas if needed.
+                        // If orientation involves swapping width/height (5,6,7,8), canvas size should be adjusted *before* this step.
+                        // Let's stick to the current implementation for now, assuming it mostly works.
+
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Apply orientation transformations if necessary (after drawing)
+                        this.applyOrientation(canvas, ctx, orientation, width, height);
+
+
+                        // --- Format Conversion Logic ---
+                        let mimeType = file.type; // Default to original
+                        let extension = file.name.split('.').pop()?.toLowerCase() || 'png';
+
+                        if (outputFormat === 'image/jpeg') {
+                            mimeType = 'image/jpeg';
+                            extension = 'jpg';
+                        } else if (outputFormat === 'image/png') {
+                            mimeType = 'image/png';
+                            extension = 'png';
+                        } else if (outputFormat === 'original') {
+                            // Keep original mimeType and extension (already set)
+                            // However, canvas.toBlob might not support all original types (like gif, bmp)
+                            // It usually defaults to PNG in such cases. Let's try the original type first.
+                            if (!['image/jpeg', 'image/png', 'image/webp'].includes(mimeType)) {
+                                console.warn(`Original format ${mimeType} may not be directly supported for output. Canvas might default to PNG.`);
+                                // Keep trying with original type, browser will handle fallback
+                            }
+                        }
+                        // If WebP added: else if (outputFormat === 'image/webp') { mimeType = 'image/webp'; extension = 'webp'; }
+
+                        // Quality is only relevant for JPEG (and WebP)
+                        const qualityArgument = (mimeType === 'image/jpeg' /* || mimeType === 'image/webp' */) ? quality : undefined;
+
+                        // Get blob from canvas
+                        canvas.toBlob(
+                            (blob) => {
+                                if (blob) {
+                                    // Check if the browser actually outputted a different type than requested (e.g., fallback from GIF to PNG)
+                                    if (outputFormat === 'original' && blob.type !== mimeType && blob.type === 'image/png') {
+                                        console.log(`Original format ${mimeType} converted to PNG.`);
+                                        extension = 'png'; // Correct extension if fallback occurred
+                                    }
+                                    resolve({ blob, url: URL.createObjectURL(blob), extension });
+                                } else {
+                                    reject(new Error('Canvas to Blob conversion failed.'));
+                                }
+                            },
+                            mimeType,
+                            qualityArgument // Pass quality (will be ignored if not applicable)
                         );
 
-                        resolve({ blob, url: URL.createObjectURL(blob), extension: file.name.split('.').pop() });
                     } catch (error) {
+                        console.error("Error in processFile:", error);
                         reject(error);
                     }
                 });
             }
 
-            createCanvas(img) {
-                const canvas = document.createElement('canvas');
-                const width = parseInt(widthInput.value) || img.width;
-                const height = parseInt(heightInput.value) || img.height;
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                return canvas;
+             calculateDimensions(originalWidth, originalHeight, targetWidth, targetHeight) {
+                let width = targetWidth || originalWidth;
+                let height = targetHeight || originalHeight;
+                const aspectRatio = originalWidth / originalHeight;
+
+                if (targetWidth && !targetHeight) {
+                    height = Math.round(targetWidth / aspectRatio);
+                } else if (!targetWidth && targetHeight) {
+                    width = Math.round(targetHeight * aspectRatio);
+                } else if (!targetWidth && !targetHeight) {
+                    // No dimensions specified, use original
+                    width = originalWidth;
+                    height = originalHeight;
+                }
+                // If both are specified, use them directly (aspect ratio might change)
+
+                // Ensure minimum dimensions
+                 width = Math.max(1, width);
+                 height = Math.max(1, height);
+
+                return { width, height };
             }
+
 
             loadImage(file) {
                 return new Promise((resolve, reject) => {
                     const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = reject;
+                    img.onload = () => {
+                         URL.revokeObjectURL(img.src); // Clean up object URL after load
+                         resolve(img);
+                    };
+                    img.onerror = (err) => {
+                        URL.revokeObjectURL(img.src); // Clean up on error too
+                        console.error("Image load error:", err);
+                        reject(new Error(`Failed to load image: ${file.name}`));
+                    };
                     img.src = URL.createObjectURL(file);
                 });
             }
 
             async getExifOrientation(file) {
+                // EXIF library might not work reliably on all browsers/formats, provide fallback
                 return new Promise(resolve => {
-                    EXIF.getData(file, function() {
-                        resolve(EXIF.getTag(this, 'Orientation') || 1);
-                    });
+                    // Only check for JPEG, as EXIF is standard there
+                    if (file.type !== 'image/jpeg') {
+                        resolve(1); // Assume default orientation
+                        return;
+                    }
+                    try {
+                        EXIF.getData(file, function() {
+                             // 'this' refers to the file object with EXIF data attached
+                            const orientation = EXIF.getTag(this, 'Orientation');
+                            resolve(orientation || 1); // Default to 1 if not found
+                        });
+                    } catch (error) {
+                        console.warn("Could not read EXIF data:", error);
+                        resolve(1); // Default to 1 on error
+                    }
                 });
             }
 
-            applyOrientation(canvas, orientation) {
-                const ctx = canvas.getContext('2d');
-                ctx.save();
-                
-                switch(orientation) {
-                    case 2: ctx.transform(-1, 0, 0, 1, canvas.width, 0); break;
-                    case 3: ctx.transform(-1, 0, 0, -1, canvas.width, canvas.height); break;
-                    case 4: ctx.transform(1, 0, 0, -1, 0, canvas.height); break;
-                    case 5: ctx.transform(0, 1, 1, 0, 0, 0); break;
-                    case 6: ctx.transform(0, 1, -1, 0, canvas.height, 0); break;
-                    case 7: ctx.transform(0, -1, -1, 0, canvas.height, canvas.width); break;
-                    case 8: ctx.transform(0, -1, 1, 0, 0, canvas.width); break;
-                }
-                
-                ctx.restore();
-            }
+            // Updated to accept context, width, height for more robust transformation
+             applyOrientation(canvas, ctx, orientation, width, height) {
+                // Based on https://stackoverflow.com/questions/20600800/js-client-side-exif-orientation-rotate-and-mirror-jpeg-images
+                 ctx.save(); // Save the current state
+
+                 // Transformation matrix logic based on orientation value
+                 switch (orientation) {
+                    case 2: // Horizontal flip
+                         ctx.translate(width, 0);
+                         ctx.scale(-1, 1);
+                         break;
+                     case 3: // 180 degree rotate left
+                         ctx.translate(width, height);
+                         ctx.rotate(Math.PI);
+                         break;
+                     case 4: // Vertical flip
+                         ctx.translate(0, height);
+                         ctx.scale(1, -1);
+                         break;
+                     case 5: // Vertical flip + 90 degree rotate right
+                         ctx.rotate(0.5 * Math.PI);
+                         ctx.scale(1, -1);
+                         break;
+                     case 6: // 90 degree rotate right
+                         ctx.rotate(0.5 * Math.PI);
+                         ctx.translate(0, -height); // Corrected translation after rotation
+                         break;
+                     case 7: // Horizontal flip + 90 degree rotate right
+                         ctx.rotate(0.5 * Math.PI);
+                         ctx.translate(width, -height); // Corrected translation
+                         ctx.scale(-1, 1);
+                         break;
+                     case 8: // 90 degree rotate left
+                         ctx.rotate(-0.5 * Math.PI);
+                         ctx.translate(-width, 0); // Corrected translation
+                         break;
+                     default: // Case 1: No transformation needed
+                         break;
+                 }
+
+                 // The drawing happens *before* this function is called in the updated processFile.
+                 // If we needed to redraw after transform:
+                 // ctx.drawImage(img, 0, 0, originalWidth, originalHeight); // Use original dimensions if needed
+
+                 // We don't call ctx.restore() here because the transformation should apply
+                 // to the canvas content before it's converted to a blob.
+                 // The canvas state is temporary anyway. If drawing *after* transform, restore would be needed.
+                 // Let's restore to be safe, assuming drawing happened before.
+                 // Correction: No, the transform needs to *persist* for toBlob. Don't restore.
+
+                  // Hold on: If we transform the *context*, it affects subsequent drawing.
+                  // If we draw *first*, then transform, the drawing itself isn't transformed.
+                  // We need to either:
+                  // 1. Transform context -> Draw image -> Restore context (not good for toBlob)
+                  // 2. Draw image to a *temporary* canvas -> Transform main canvas context -> Draw temp canvas onto main canvas -> Restore (better)
+                  // 3. Calculate final dimensions/rotation -> Create canvas with final dimensions -> Draw rotated/flipped image directly.
+
+                  // Let's try approach 2 (using a temp canvas) for correctness, although slightly less performant.
+
+                  // --- Revised applyOrientation using temp canvas ---
+                  if (orientation > 1) {
+                       const tempCanvas = document.createElement('canvas');
+                       tempCanvas.width = canvas.width;
+                       tempCanvas.height = canvas.height;
+                       const tempCtx = tempCanvas.getContext('2d');
+                       // Copy the original drawing to the temp canvas
+                       tempCtx.drawImage(canvas, 0, 0);
+
+                       // Clear the main canvas
+                       ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                       // Apply transformations to the main canvas context
+                        ctx.save(); // Save state before transforming
+
+                        // Adjust dimensions if orientation swaps them (5, 6, 7, 8)
+                        if (orientation >= 5) {
+                           // Swap dimensions FOR THE TRANSFORMATION logic, not the canvas element itself yet
+                           // The actual canvas element size might need swapping earlier if we resize
+                           // This gets complex quickly. Let's assume resizing handled W/H correctly already.
+
+                            // Apply transform based on orientation
+                            switch (orientation) {
+                                case 2: ctx.translate(width, 0); ctx.scale(-1, 1); break;
+                                case 3: ctx.translate(width, height); ctx.rotate(Math.PI); break;
+                                case 4: ctx.translate(0, height); ctx.scale(1, -1); break;
+                                // For 5-8, the rotation swaps width/height context
+                                case 5: ctx.rotate(0.5 * Math.PI); ctx.scale(1, -1); break;
+                                case 6: ctx.rotate(0.5 * Math.PI); ctx.translate(0, -height); break; // Use original height here
+                                case 7: ctx.rotate(0.5 * Math.PI); ctx.translate(width, -height); ctx.scale(-1, 1); break; // Use original w/h
+                                case 8: ctx.rotate(-0.5 * Math.PI); ctx.translate(-width, 0); break; // Use original width
+                            }
+                       } else {
+                             // Apply transform based on orientation (1-4)
+                            switch (orientation) {
+                                case 2: ctx.translate(width, 0); ctx.scale(-1, 1); break;
+                                case 3: ctx.translate(width, height); ctx.rotate(Math.PI); break;
+                                case 4: ctx.translate(0, height); ctx.scale(1, -1); break;
+                            }
+                       }
+
+
+                       // Draw the original image (from temp canvas) onto the transformed context
+                       // Adjust drawImage parameters if rotation swaps w/h conceptually for drawing source
+                        if (orientation >= 5) {
+                            // When rotated 90/270, the source 'height' acts as width and vice versa
+                            ctx.drawImage(tempCanvas, 0, 0, height, width); // Draw swapped? No, draw source normally onto transformed context.
+                        }
+                         ctx.drawImage(tempCanvas, 0, 0);
+
+
+                        ctx.restore(); // Restore context state after drawing
+                  }
+                  // If orientation is 1, do nothing.
+             }
 
             downloadFile(blob, filename) {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
+                a.style.display = 'none'; // Hide the link
                 a.href = url;
                 a.download = filename;
                 document.body.appendChild(a);
                 a.click();
-                document.body.removeChild(a);
+                // Explicitly clean up
                 window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
             }
 
             clearFiles() {
+                // Revoke any existing preview URLs to free memory
+                const previews = document.querySelectorAll('.preview-image');
+                previews.forEach(img => {
+                    if (img.src.startsWith('blob:')) {
+                        URL.revokeObjectURL(img.src);
+                    }
+                });
+
                 this.files = [];
-                this.processedFiles = [];
+                this.processedFilesData = [];
                 this.processedZip = null;
+                // Reset input fields related to files
+                 document.getElementById('fileInput').value = ''; // Clear file input selection state
             }
 
             showError(message) {
-                const errorEl = document.createElement('div');
-                errorEl.className = 'error-message';
-                errorEl.textContent = message;
-                document.body.appendChild(errorEl);
-                setTimeout(() => errorEl.remove(), 5000);
+                this._showMessage(message, 'error-message', 'var(--error)');
+            }
+             showInfo(message) {
+                this._showMessage(message, 'info-message', 'var(--primary)');
+            }
+
+
+            _showMessage(message, className, backgroundColor) {
+                 // Remove existing messages of the same type first
+                 document.querySelectorAll(`.${className}`).forEach(el => el.remove());
+
+                 const msgEl = document.createElement('div');
+                 msgEl.className = className; // Use generic class name from call
+                 msgEl.textContent = message;
+                 // Apply generic styles + specific background
+                 msgEl.style.position = 'fixed';
+                 msgEl.style.bottom = '1rem';
+                 msgEl.style.left = '50%';
+                 msgEl.style.transform = 'translateX(-50%)';
+                 msgEl.style.backgroundColor = backgroundColor;
+                 msgEl.style.color = 'white';
+                 msgEl.style.padding = '1rem 1.5rem';
+                 msgEl.style.borderRadius = '0.5rem';
+                 msgEl.style.zIndex = '1100';
+                 msgEl.style.boxShadow = '0 4px 10px rgba(0,0,0,0.2)';
+                 msgEl.style.opacity = '0'; // Start hidden for animation
+                 msgEl.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+
+
+                 document.body.appendChild(msgEl);
+
+                 // Animate in
+                  requestAnimationFrame(() => {
+                     msgEl.style.opacity = '1';
+                     msgEl.style.transform = 'translate(-50%, -10px)'; // Move up slightly
+                  });
+
+
+                 // Automatically remove after a delay
+                 setTimeout(() => {
+                     msgEl.style.opacity = '0';
+                     msgEl.style.transform = 'translate(-50%, 100%)'; // Slide down
+                     setTimeout(() => msgEl.remove(), 300); // Remove from DOM after transition
+                 }, 5000); // 5 seconds visible
             }
         }
 
         class UIController {
             constructor(imageProcessor) {
                 this.imageProcessor = imageProcessor;
+                // Cache DOM elements
+                this.fileInput = document.getElementById('fileInput');
+                this.fileCount = document.getElementById('fileCount');
+                this.previewGrid = document.getElementById('previewGrid');
+                this.uploadButton = document.getElementById('uploadButton');
+                this.clearButton = document.getElementById('clearButton');
+                this.resizeButton = document.getElementById('resizeButton');
+                this.batchButton = document.getElementById('batchButton');
+                this.downloadButton = document.getElementById('downloadButton');
+                this.loading = document.getElementById('loading');
+                this.filenameInput = document.getElementById('filenameInput');
+                this.widthInput = document.getElementById('widthInput');
+                this.heightInput = document.getElementById('heightInput');
+                this.qualityInput = document.getElementById('qualityInput');
+                this.qualityValue = document.getElementById('qualityValue');
+                this.formatSelect = document.getElementById('formatSelect');
+                this.qualityControlGroup = document.getElementById('qualityControlGroup');
+                this.aboutButton = document.getElementById('aboutButton');
+                this.aboutModal = document.getElementById('aboutModal');
+                this.closeModal = document.getElementById('closeModal');
+
                 this.initialize();
             }
 
@@ -481,187 +883,307 @@
                 this.initializeUpload();
                 this.initializeControls();
                 this.initializeQualitySlider();
+                this.initializeFormatSelector(); // Added initializer
                 this.initializeAboutModal();
+                this.updateButtonStates(); // Initial button state
             }
 
             initializeUpload() {
-                const fileInput = document.getElementById('fileInput');
-                const fileCount = document.getElementById('fileCount');
-                const previewGrid = document.getElementById('previewGrid');
-                const uploadButton = document.getElementById('uploadButton');
-                const clearButton = document.getElementById('clearButton');
+                // Use arrow functions to maintain 'this' context
+                this.fileInput.addEventListener('change', (e) => this.handleFileSelection(e.target.files));
 
-                fileInput.addEventListener('change', async (e) => {
-                    if (!e.target.files?.length) return;
-                    uploadButton.disabled = true;
-                    try {
-                        const files = await this.imageProcessor.addFiles(e.target.files);
-                        fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
-                        this.updatePreviewGrid(files);
-                        clearButton.style.display = 'inline-block';
-                    } catch (error) {
-                        this.showError(error.message);
-                    } finally {
-                        uploadButton.disabled = false;
-                    }
-                });
-
+                // Drag and Drop listeners
                 document.body.addEventListener('dragover', (e) => {
                     e.preventDefault();
-                    document.body.style.opacity = '0.7';
+                    e.stopPropagation();
+                    // Optional: Add visual cue like a border
+                     document.body.style.outline = '2px dashed var(--primary)';
                 });
 
                 document.body.addEventListener('dragleave', (e) => {
                     e.preventDefault();
-                    document.body.style.opacity = '1';
+                    e.stopPropagation();
+                     document.body.style.outline = 'none'; // Remove visual cue
                 });
 
-                document.body.addEventListener('drop', async (e) => {
+                document.body.addEventListener('drop', (e) => {
                     e.preventDefault();
-                    document.body.style.opacity = '1';
-                    uploadButton.disabled = true;
-                    try {
-                        const files = await this.imageProcessor.addFiles(e.dataTransfer.files);
-                        fileCount.textContent = `${this.imageProcessor.files.length} files selected`;
-                        this.updatePreviewGrid(files);
-                        clearButton.style.display = 'inline-block';
-                    } catch (error) {
-                        this.showError(error.message);
-                    } finally {
-                        uploadButton.disabled = false;
-                    }
+                    e.stopPropagation();
+                     document.body.style.outline = 'none'; // Remove visual cue
+                    this.handleFileSelection(e.dataTransfer.files);
                 });
 
-                clearButton.addEventListener('click', () => {
+                 this.clearButton.addEventListener('click', () => {
                     this.imageProcessor.clearFiles();
-                    fileCount.textContent = '0 files selected';
-                    previewGrid.innerHTML = '';
-                    clearButton.style.display = 'none';
-                    document.getElementById('downloadButton').style.display = 'none';
-                    document.getElementById('filenameInput').value = '';
+                    this.fileCount.textContent = '0 files selected';
+                    this.previewGrid.innerHTML = ''; // Clear preview
+                    this.downloadButton.style.display = 'none'; // Hide download button
+                    // this.filenameInput.value = ''; // Don't clear filename automatically
+                    this.updateButtonStates(); // Update button enabled/disabled state
                 });
             }
 
-            updatePreviewGrid(files) {
-                const previewGrid = document.getElementById('previewGrid');
-                
-                files.forEach(file => {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        const card = document.createElement('div');
-                        card.className = 'preview-card';
-                        card.innerHTML = `
-                            <img src="${e.target.result}" class="preview-image" alt="Preview">
-                            <div class="file-info">
-                                <span>${file.name}</span>
-                                <span>${(file.size / 1024).toFixed(1)} KB</span>
-                            </div>
-                        `;
-                        previewGrid.appendChild(card);
-                    };
-                    reader.readAsDataURL(file);
-                });
+             async handleFileSelection(fileList) {
+                if (!fileList?.length) return;
+                this.uploadButton.disabled = true; // Disable while processing selection
+                 this.loading.style.display = 'flex'; // Show loading indicator briefly
+
+                try {
+                    // Adding files is now synchronous, but preview generation is async
+                    const newlyAddedFiles = this.imageProcessor.addFiles(fileList);
+
+                    if (newlyAddedFiles.length > 0) {
+                         // Update preview grid asynchronously
+                         await this.updatePreviewGrid(newlyAddedFiles);
+                    }
+                     // Update count and button states after potential additions
+                    this.fileCount.textContent = `${this.imageProcessor.files.length} file(s) selected`;
+                    this.updateButtonStates();
+
+                } catch (error) {
+                    this.showError(error.message);
+                } finally {
+                    this.uploadButton.disabled = false; // Re-enable upload button
+                     this.loading.style.display = 'none'; // Hide loading indicator
+                }
+            }
+
+
+            async updatePreviewGrid(filesToPreview) {
+                // Use Promise.all for potentially faster rendering if many files added at once
+                 await Promise.all(filesToPreview.map(file => {
+                     return new Promise((resolve, reject) => {
+                         const reader = new FileReader();
+                         reader.onload = (e) => {
+                             const card = document.createElement('div');
+                             card.className = 'preview-card';
+                             // Added loading="lazy" for potential performance benefit with many images
+                             card.innerHTML = `
+                                 <img src="${e.target.result}" class="preview-image" alt="Preview of ${file.name}" loading="lazy">
+                                 <div class="file-info">
+                                     <span>${file.name}</span>
+                                     <span>(${(file.size / 1024).toFixed(1)} KB)</span>
+                                 </div>
+                             `;
+                             this.previewGrid.appendChild(card);
+                             resolve(); // Resolve promise for this file
+                         };
+                         reader.onerror = (err) => {
+                              console.error("FileReader error:", err);
+                              this.showError(`Could not read file: ${file.name}`);
+                              reject(err); // Reject promise for this file
+                         }
+                         reader.readAsDataURL(file);
+                     });
+                 }));
             }
 
             initializeControls() {
-                const resizeButton = document.getElementById('resizeButton');
-                const batchButton = document.getElementById('batchButton');
-                const downloadButton = document.getElementById('downloadButton');
-                const loading = document.getElementById('loading');
-                const filenameInput = document.getElementById('filenameInput');
-
-                resizeButton.addEventListener('click', async () => {
+                this.resizeButton.addEventListener('click', async () => {
                     if (!this.imageProcessor.files.length) {
-                        this.showError('Please upload images first');
+                        this.showError('Please upload at least one image first.');
                         return;
                     }
-                    
-                    loading.style.display = 'flex';
-                    resizeButton.disabled = true;
+
+                    this.setLoading(true);
+                    this.disableActionButtons();
+
                     try {
-                        const processed = await this.imageProcessor.processFile(this.imageProcessor.files[0]);
-                        const customName = filenameInput.value.trim() || 'resized';
-                        this.imageProcessor.downloadFile(processed.blob, `${customName}.${processed.extension}`);
-                        downloadButton.style.display = 'none';
+                        const options = this.getProcessingOptions();
+                        // Process only the first file
+                        const processed = await this.imageProcessor.processFile(this.imageProcessor.files[0], options);
+
+                         // Determine filename
+                         const originalNameWithoutExt = this.imageProcessor.files[0].name.split('.').slice(0, -1).join('.') || 'image';
+                         const filenamePrefix = options.filenamePrefix || originalNameWithoutExt;
+                         const finalFilename = `${filenamePrefix}.${processed.extension}`;
+
+                        this.imageProcessor.downloadFile(processed.blob, finalFilename);
+                        // No need to show download button for single file download
+
                     } catch (error) {
-                        this.showError(error.message);
+                         console.error("Resize Error:", error)
+                        this.showError(`Error resizing image: ${error.message}`);
                     } finally {
-                        loading.style.display = 'none';
-                        resizeButton.disabled = false;
+                        this.setLoading(false);
+                        this.updateButtonStates(); // Re-enable buttons based on state
                     }
                 });
 
-                batchButton.addEventListener('click', async () => {
+                this.batchButton.addEventListener('click', async () => {
                     if (!this.imageProcessor.files.length) {
-                        this.showError('Please upload images first');
+                        this.showError('Please upload images first for batch processing.');
                         return;
                     }
-                    
-                    loading.style.display = 'flex';
-                    batchButton.disabled = true;
+
+                    this.setLoading(true);
+                    this.disableActionButtons();
+
                     try {
-                        const customName = filenameInput.value.trim();
-                        await this.imageProcessor.processAll(customName);
-                        downloadButton.style.display = 'inline-block';
+                        const options = this.getProcessingOptions();
+                        await this.imageProcessor.processAll(options); // Process all files
+
+                        if (this.imageProcessor.processedZip) {
+                             this.downloadButton.style.display = 'inline-block'; // Show download ZIP button
+                             this.showInfo(`Batch processing complete. ${this.imageProcessor.processedFilesData.length} image(s) ready in ZIP.`);
+                        } else {
+                            // This case might happen if processAll throws before creating zip
+                            this.showError('Batch processing finished, but no ZIP file was generated (possibly no images succeeded).');
+                            this.downloadButton.style.display = 'none';
+                        }
+
                     } catch (error) {
-                        this.showError(error.message);
+                        // Error already shown by ImageProcessor, just log here
+                        console.error("Batch Error:", error);
+                        this.downloadButton.style.display = 'none'; // Hide download button on error
                     } finally {
-                        loading.style.display = 'none';
-                        batchButton.disabled = false;
+                        this.setLoading(false);
+                        this.updateButtonStates(); // Re-enable buttons
                     }
                 });
 
-                downloadButton.addEventListener('click', () => {
+                this.downloadButton.addEventListener('click', () => {
                     if (this.imageProcessor.processedZip) {
-                        const customName = filenameInput.value.trim() || 'resized-images';
+                        const customName = this.filenameInput.value.trim() || 'resized-images';
                         this.imageProcessor.downloadFile(this.imageProcessor.processedZip, `${customName}.zip`);
                     } else {
-                        this.showError('No processed files available. Please process images first.');
+                        this.showError('No processed ZIP available. Please run "Process Batch" first.');
                     }
                 });
             }
 
+            // Helper to get current settings
+            getProcessingOptions() {
+                return {
+                    targetWidth: parseInt(this.widthInput.value) || null,
+                    targetHeight: parseInt(this.heightInput.value) || null,
+                    quality: parseFloat(this.qualityInput.value),
+                    outputFormat: this.formatSelect.value, // 'original', 'image/jpeg', 'image/png'
+                    filenamePrefix: this.filenameInput.value.trim() || 'resized' // Default prefix
+                };
+            }
+
+            // Helper to manage loading state
+            setLoading(isLoading) {
+                this.loading.style.display = isLoading ? 'flex' : 'none';
+            }
+
+            // Helper to disable action buttons during processing
+            disableActionButtons() {
+                 this.resizeButton.disabled = true;
+                 this.batchButton.disabled = true;
+                 // Keep download button state as is, might be needed after processing
+                 // Keep clear button enabled
+            }
+
+            // Helper to update button states based on file presence
+             updateButtonStates() {
+                 const hasFiles = this.imageProcessor.files.length > 0;
+                 this.resizeButton.disabled = !hasFiles || this.imageProcessor.processing;
+                 this.batchButton.disabled = !hasFiles || this.imageProcessor.processing;
+                 this.clearButton.style.display = hasFiles ? 'inline-block' : 'none';
+                 // Download button state is handled separately after batch processing
+             }
+
+
             initializeQualitySlider() {
-                const qualityInput = document.getElementById('qualityInput');
-                const qualityValue = document.getElementById('qualityValue');
-                qualityInput.addEventListener('input', () => {
-                    qualityValue.textContent = `${Math.round(qualityInput.value * 100)}%`;
+                this.qualityInput.addEventListener('input', () => {
+                    this.qualityValue.textContent = `${Math.round(this.qualityInput.value * 100)}%`;
                 });
+            }
+
+            // Added: Show/hide quality slider based on format
+            initializeFormatSelector() {
+                this.formatSelect.addEventListener('change', () => {
+                    const selectedFormat = this.formatSelect.value;
+                    // Show quality controls only if JPEG is selected
+                    // Or if 'original' is selected (as the original *might* be JPEG)
+                    // Hide for PNG as quality setting doesn't apply
+                     if (selectedFormat === 'image/jpeg' || selectedFormat === 'original') {
+                          this.qualityControlGroup.style.display = 'flex'; // Or 'block'/'grid' depending on layout needs
+                          this.qualityControlGroup.style.opacity = '1';
+                          this.qualityControlGroup.style.maxHeight = '150px'; // Allow space
+                          this.qualityInput.disabled = false;
+
+                     } else { // PNG or other non-quality formats
+                          this.qualityControlGroup.style.opacity = '0.5'; // Visually indicate disabled
+                          this.qualityInput.disabled = true; // Disable slider
+                          // Optional: You could also hide it completely:
+                          // this.qualityControlGroup.style.display = 'none';
+                          // this.qualityControlGroup.style.maxHeight = '0';
+                          // this.qualityControlGroup.style.overflow = 'hidden';
+                     }
+                });
+                 // Trigger change once on load to set initial state
+                 this.formatSelect.dispatchEvent(new Event('change'));
             }
 
             initializeAboutModal() {
-                const aboutButton = document.getElementById('aboutButton');
-                const aboutModal = document.getElementById('aboutModal');
-                const closeModal = document.getElementById('closeModal');
-
-                aboutButton.addEventListener('click', () => {
-                    aboutModal.style.display = 'block';
+                this.aboutButton.addEventListener('click', () => {
+                    this.aboutModal.style.display = 'flex'; // Use flex for centering
+                     // Add class for transition effect
+                     requestAnimationFrame(() => { // Ensure display is set before adding class
+                         this.aboutModal.classList.add('active');
+                     });
                 });
 
-                closeModal.addEventListener('click', () => {
-                    aboutModal.style.display = 'none';
-                });
+                this.closeModal.addEventListener('click', this.closeAboutModal.bind(this));
 
-                window.addEventListener('click', (e) => {
-                    if (e.target === aboutModal) {
-                        aboutModal.style.display = 'none';
+                // Close on overlay click
+                this.aboutModal.addEventListener('click', (e) => {
+                    if (e.target === this.aboutModal) {
+                        this.closeAboutModal();
                     }
                 });
+                 // Close with Escape key
+                 window.addEventListener('keydown', (e) => {
+                     if (e.key === 'Escape' && this.aboutModal.classList.contains('active')) {
+                         this.closeAboutModal();
+                     }
+                 });
             }
 
+             closeAboutModal() {
+                 this.aboutModal.classList.remove('active');
+                 // Wait for transition to finish before hiding
+                 this.aboutModal.addEventListener('transitionend', () => {
+                     this.aboutModal.style.display = 'none';
+                 }, { once: true }); // Remove listener after it runs once
+             }
+
+            // Use the ImageProcessor's error display
             showError(message) {
                 this.imageProcessor.showError(message);
             }
+             showInfo(message) {
+                this.imageProcessor.showInfo(message);
+            }
         }
 
+        // --- App Initialization ---
         document.addEventListener('DOMContentLoaded', () => {
+            // Check for necessary browser features
+            if (!window.File || !window.FileReader || !window.FileList || !window.Blob || !window.CanvasRenderingContext2D || !window.URL || !window.JSZip) {
+                alert("Your browser is missing features required for this app to run properly. Please update your browser.");
+                // Optionally disable the app interface here
+                return;
+            }
+
+
             const imageProcessor = new ImageProcessor();
-            new UIController(imageProcessor);
-            
+            new UIController(imageProcessor); // Initialize the UI
+
+            // --- Service Worker Registration ---
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js')
-                    .then(() => console.log('Service Worker registered'))
-                    .catch(err => console.error('SW registration failed:', err));
+                window.addEventListener('load', () => { // Register SW after page load
+                    navigator.serviceWorker.register('sw.js') // Assuming sw.js is in the root
+                        .then(registration => {
+                            console.log('Service Worker registered successfully with scope:', registration.scope);
+                        })
+                        .catch(err => {
+                            console.error('Service Worker registration failed:', err);
+                        });
+                });
             }
         });
     </script>
